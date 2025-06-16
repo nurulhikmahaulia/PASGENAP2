@@ -102,4 +102,88 @@ export async function tambahAbsensi(data) {
 }
 
 // Function to update attendance record
-export async function ubahAbsensi(data)
+export async function ubahAbsensi(data) {
+  try {
+    const docRef = doc(db, "absensi", data.id);
+    await updateDoc(docRef, {
+      tanggal: data.tanggal,
+      nis: data.nis,
+      nama: data.nama,
+      alamat: data.alamat,
+      notlpn: data.notlpn,
+      kelas: data.kelas,
+      keterangan: data.keterangan,
+      updatedAt: new Date().toISOString()
+    });
+    
+    console.log("Attendance record updated successfully");
+    return true;
+  } catch (error) {
+    console.error("Error updating attendance record: ", error);
+    throw error;
+  }
+}
+
+// Function to delete attendance record
+export async function hapusAbsensi(id) {
+  try {
+    await deleteDoc(doc(db, "absensi", id));
+    console.log("Attendance record deleted successfully");
+    return true;
+  } catch (error) {
+    console.error("Error deleting attendance record: ", error);
+    throw error;
+  }
+}
+
+// Additional functions for reporting/statistics
+export async function getAttendanceByDateRange(startDate, endDate) {
+  try {
+    const q = query(
+      absensiCollection,
+      where("tanggal", ">=", startDate),
+      where("tanggal", "<=", endDate),
+      orderBy("tanggal")
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const attendanceList = [];
+    
+    querySnapshot.forEach((doc) => {
+      attendanceList.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    return attendanceList;
+  } catch (error) {
+    console.error("Error getting attendance by date range: ", error);
+    return [];
+  }
+}
+
+export async function getAttendanceByStatus(status) {
+  try {
+    const q = query(
+      absensiCollection,
+      where("keterangan", "==", status),
+      orderBy("tanggal", "desc")
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const attendanceList = [];
+    
+    querySnapshot.forEach((doc) => {
+      attendanceList.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    return attendanceList;
+  } catch (error) {
+    console.error("Error getting attendance by status: ", error);
+    return [];
+  }
+}
